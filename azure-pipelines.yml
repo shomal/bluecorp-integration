@@ -26,7 +26,7 @@ stages:
         steps:
           # Step 1: Set python path
           - script: |
-              set PATH=C:\agents\vsts-agent-win-x64-4.248.0\_work\_tool\Python\3.11.9\x64;%PATH%
+              set PATH=C:\agents\vsts-agent-win-x64-4.248.0\_work\_tool\Python\3.11.9\x64\Scripts;%PATH%
               python --version
               pip --version
             displayName: 'Set python path and validate'
