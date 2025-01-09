@@ -14,7 +14,6 @@ from models.cvs_model import CsvModel
 #from azure.keyvault.secrets import SecretClient
 from azure.data.tables import TableServiceClient
 
-
 MAX_PAYLOAD_SIZE_KB = 800
 
 #Initialize the KeyVault client
@@ -34,7 +33,7 @@ sftp_incoming_folder = os.getenv("SFTP_INCOMING_FOLDER")
 
 #Azure Table Storage Configuration
 table_connection_string = os.getenv("AzureWebJobsStorage")
-table_name = "BluecorpProcessedOrders"
+table_name = os.getenv("AZURE_TABLE_NAME")
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 @app.route(route="bluecorp_order_processing")
