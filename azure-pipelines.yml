@@ -4,7 +4,7 @@ trigger:
       - main  # Trigger on changes to the main branch
 
 pool:
-  name: 'LocalAgent'
+  name: 'Azure Pipelines'
 
 #variables:
 # Azure DevOps service connection name
