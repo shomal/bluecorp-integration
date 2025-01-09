@@ -4,7 +4,7 @@ trigger:
       - main  # Trigger on changes to the main branch
 
 pool:
-  vmImage: 'ubuntu-latest'  # Use the latest Ubuntu image for running the pipeline
+  name: 'LocalAgent'
 
 #variables:
 # Azure DevOps service connection name
