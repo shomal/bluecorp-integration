@@ -29,7 +29,6 @@ stages:
             inputs:
               versionSpec: '3.11'
               addToPath: true
-              architecture: x64
               disableDownloadFromRegistry: true
           
           - script: |
