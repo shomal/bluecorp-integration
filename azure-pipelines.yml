@@ -4,7 +4,7 @@ trigger:
       - main  # Trigger on changes to the main branch
 
 pool:
-  name: 'Azure Pipelines'
+  name: 'Default' #self hosted agent pool
 
 #variables:
 # Azure DevOps service connection name
