@@ -24,17 +24,12 @@ stages:
       - job: DeployToAzure
         displayName: 'Deploy to Azure'
         steps:
-          # Step 1: Use installed Python
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: '3.11.9'
-              addToPath: true
-
-          # Validate Python
+          # Step 1: Set python path
           - script: |
+              set PATH=C:\agents\vsts-agent-win-x64-4.248.0\_work\_tool\Python\3.11.9\x64;%PATH%
               python --version
               pip --version
-            displayName: 'Validate Python Installation'
+            displayName: 'Set python path and validate'
           
           # Install Azure CLI 
           - script: |
