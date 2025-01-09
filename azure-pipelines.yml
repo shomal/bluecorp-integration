@@ -7,7 +7,7 @@ pool:
   vmImage: 'ubuntu-latest'  # Use the latest Ubuntu image for running the pipeline
 
 variables:
-  azureSubscription: 'ef92a393-7d47-4237-a19a-dcc4491acb66'  # Your Azure DevOps service connection name
+  azureSubscription: 'AzureBluecorpConnection'  # Your Azure DevOps service connection name
   resourceGroup: 'bluecorp_service_rg'  # Name of your new resource group
   location: 'australiaeast'  # Azure region to deploy resources to
 
