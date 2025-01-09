@@ -24,10 +24,7 @@ stages:
       - job: DeployToAzure
         displayName: 'Deploy to Azure'
         steps:
-          # Step 1: Checkout your code from GitHub
-          - task: Checkout@1
-
-          # Step 2: Install Azure CLI
+          # Step 1: Install Azure CLI
           - task: UsePythonVersion@0
             inputs:
               versionSpec: '3.x'
@@ -37,7 +34,7 @@ stages:
               sudo apt-get install azure-cli
             displayName: 'Install Azure CLI'
 
-          # Step 3: Log in to Azure
+          # Step 2: Log in to Azure
           - task: AzureCLI@2
             inputs:
               azureSubscription: "AzureBluecorpConnection"
@@ -47,7 +44,7 @@ stages:
                 az login --service-principal -u $(AZURESERVICEPRINCIPALUSERNAME) -p $(AZURESERVICEPRINCIPALPASSWORD) --tenant $(TENANTID)
                 az account set --subscription "AzureBluecorpConnection"
 
-          # Step 4: Deploy the Bicep template to Azure
+          # Step 3: Deploy the Bicep template to Azure
           - task: AzureCLI@2
             inputs:
               azureSubscription: "AzureBluecorpConnection"
@@ -59,4 +56,4 @@ stages:
                   --template-file infrastructure/azure_template.bicep\
                   --parameters location="australiaeast"
 
-          # Step 5: Post-deployment steps (optional, e.g., notifications, tests)
+          # Step 4: Post-deployment steps (optional, e.g., notifications, tests)
