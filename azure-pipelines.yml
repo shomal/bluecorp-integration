@@ -29,7 +29,6 @@ stages:
             inputs:
               versionSpec: '3.11'
               addToPath: true
-              disableDownloadFromRegistry: true
           
           - script: |
               curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
