@@ -6,16 +6,16 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'  # Use the latest Ubuntu image for running the pipeline
 
-variables:
+#variables:
 # Azure DevOps service connection name
- - name: azureSubscription
-   value: AzureBluecorpConnection
+# - name: azureSubscription
+#   value: AzureBluecorpConnection
 # Resource group
- - name: resourceGroup
-   value: 'bluecorp_service_rg'
+# - name: resourceGroup
+#   value: 'bluecorp_service_rg'
 # Azure region to deploy resources to
- - name: location
-   value : 'australiaeast'
+# - name: location
+#   value : 'australiaeast'
 
 stages:
   - stage: BuildAndDeploy
@@ -40,22 +40,23 @@ stages:
           # Step 3: Log in to Azure
           - task: AzureCLI@2
             inputs:
-              azureSubscription: $(azureSubscription)
+              azureSubscription: "AzureBluecorpConnection"
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
                 az login --service-principal -u $(AZURESERVICEPRINCIPALUSERNAME) -p $(AZURESERVICEPRINCIPALPASSWORD) --tenant $(TENANTID)
-                az account set --subscription $(azureSubscription)
+                az account set --subscription "AzureBluecorpConnection"
 
           # Step 4: Deploy the Bicep template to Azure
           - task: AzureCLI@2
             inputs:
-              azureSubscription: $(azureSubscription)
+              azureSubscription: "AzureBluecorpConnection"
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
                 az deployment group create \
-                  --resource-group $(resourceGroup) \
-                  --template-file infrastructure/azure_template.bicep
+                  --resource-group bluecorp_service_rg \
+                  --template-file infrastructure/azure_template.bicep\
+                  --parameters location="australiaeast"
 
           # Step 5: Post-deployment steps (optional, e.g., notifications, tests)
