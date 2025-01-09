@@ -1,14 +1,43 @@
+import datetime
 import azure.functions as func
 import logging
 import json
 import os
 import csv
+import io
+import paramiko
+from azure.core.exceptions import ResourceNotFoundError
+from dotenv import load_dotenv
 from jsonschema import validate, ValidationError
+from controllers.mappers import ContainerTypeMapper
 from models.json_model import ReadyForDispatch
 from models.cvs_model import CsvModel
+from azure.identity import DefaultAzureCredential
+from azure.keyvault.secrets import SecretClient
+from azure.data.tables import TableServiceClient, TableClient
 
 
 MAX_PAYLOAD_SIZE_KB = 800
+
+#Initializa the KeyVault client
+load_dotenv()
+key_vault_url = "https://order-proc-dev-kv.vault.azure.net/"
+secret_name = "bluecorp-sftp-private-key"
+credential = DefaultAzureCredential()
+client =SecretClient(vault_url=key_vault_url, credential=credential)
+
+#retrieve private key
+private_key = client.get_secret(secret_name).value
+
+#SFTP Configuration
+sftp_host = "bluecorpsftp.blob.core.windows.net"
+sftp_port = 22
+sftp_username = "bluecorpsftp.bluecorp"
+sftp_incoming_folder = "bluecorp-incoming"
+
+#Azure Table Storage Configuration
+table_connection_string = os.getenv("AzureWebJobsStorage")
+table_name = "BluecorpProcessedOrders"
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
 @app.route(route="bluecorp_order_processing")
@@ -31,15 +60,43 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
 
         dispatch_data = ReadyForDispatch(**req_body)
 
-        #map the json data to csv
+        #initialize table storage client
+        table_service_client = TableServiceClient.from_connection_string(table_connection_string)
+        table_client = table_service_client.get_table_client(table_name)
+
+        logging.info(f"Dispatch Data: {dispatch_data}")
+        
+        #check for duplicate order/ control number
+        control_number = dispatch_data.controlNumber
+        if check_duplicate_order(table_client, control_number):
+            logging.info(f"Duplicate order found for ControlNumber: {control_number}. This dispatch load will be skipped for processing.")
+            return func.HttpResponse("Duplicate order found. No new payload to process.", status_code=200)
+
+            #map the json data to csv
         mapped_csv_data = map_json_to_csv(dispatch_data)
         logging.info("Dispatch data mapped to CSV.")
-        logging.info(f"CSV data: {mapped_csv_data}")
+        #logging.info(f"CSV data: {mapped_csv_data}")
 
         #write to csv file
         output_file = "dispatch_data.csv"
         write_to_csv_file(mapped_csv_data, output_file)
         logging.info(f"Dispatch data written to CSV file {output_file}")
+
+            
+        with open("bluecorp_rsa_id", "r") as key_file:
+            private_key = key_file.read()
+
+        #connect to SFTP server
+        sftp_client = connect_to_SFTP(private_key)
+
+        #upload the csv file to SFTP server
+        upload_to_SFTP(sftp_client, output_file)
+
+        insert_processed_order(table_client, control_number)
+        logging.info(f"Order with ControlNumber: {control_number} processed successfully")
+
+        #cleanup the csv file
+        os.remove(output_file)
 
         return func.HttpResponse("Dispatch Payload processed successfully", status_code=200)
     
@@ -74,7 +131,7 @@ def map_json_to_csv(json_data):
             csv_model = CsvModel(
                 customerReference=json_data.salesOrder,
                 loadId=container.loadId,
-                containerType=container.containerType,
+                containerType=ContainerTypeMapper.map_container_type(container.containerType),
                 itemCode=item.itemCode,
                 itemQuantity=item.quantity,
                 itemWeight=item.cartonWeight,
@@ -99,11 +156,87 @@ def write_to_csv_file(csv_models, file_path):
     logging.info(f"CSV file created at: {file_path}")
 
 
-def connect_to_SFTP():
+def connect_to_SFTP(private_key):
     # Connect to the SFTP server
+    logging.info("Starting private key transformation and SFTP connection")
+
+    private_key = private_key.strip()
+
+    #try:
+        # Save private key to a temporary file
+    temp_key_file = "temp_private_key.pem"
+    with open(temp_key_file, "w") as key_file:
+        key_file.write(private_key)
+        
+        # # Ensure correct file permissions
+    os.chmod(temp_key_file, 0o600)  # Read and write for the owner only
+
+        # Load the private key
+    private_key_obj = paramiko.RSAKey.from_private_key_file(temp_key_file)
+
     logging.info("Connecting to SFTP server")
+        # Establish the SFTP connection
+    transport = paramiko.Transport((sftp_host, sftp_port))
+    transport.connect(username=sftp_username, pkey=private_key_obj)
+    sftp = paramiko.SFTPClient.from_transport(transport)
+    logging.info("Connected to SFTP server")
+
+        # Clean up the temporary private key file after connecting
+    os.remove(temp_key_file)
+    return sftp
+    
+    # except Exception as e:
+    #     logging.error(f"Failed to connect to SFTP server: {e}")
+    #     return func.HttpResponse(
+    #         "Failed to connect to SFTP server", status_code=500)
     
 
-def upload_to_SFTP():
+def upload_to_SFTP(sftp_client, upload_path):
     # Upload the CSV file to the SFTP server
     logging.info("Uploading the CSV file to SFTP server")
+    try:
+        sftp_client.put("dispatch_data.csv", f"{sftp_incoming_folder}/{upload_path}")
+        logging.info("CSV file uploaded to SFTP server")
+    except Exception as e:
+        logging.error(f"Failed to upload the CSV file to SFTP server: {e}")
+        return func.HttpResponse(
+            "Failed to upload the CSV file to SFTP server", status_code=500)
+    finally:
+        sftp_client.close()
+        logging.info("SFTP connection closed")
+
+
+def check_duplicate_order(table_client, control_number):
+    # Check if the order with the control number already exists in the table
+    control_number = str(control_number)
+    logging.info(f"Checking for existing orders in the table with control number: {control_number}")
+    try:
+        entity = table_client.get_entity(partition_key="DispatchOrder", row_key=control_number)
+        if entity:
+            return True  # Duplicate order found
+    except ResourceNotFoundError:
+        logging.info(f"No existing order found for ControlNumber so will proceed with processing this dispatch: {control_number}")
+        return False
+    except Exception as e:
+        logging.error(f"Failed to check for duplicate orders: {e}")	
+        return False
+    
+def insert_processed_order(table_client, control_number):
+    # Insert the processed order into the table
+    logging.info(f"Inserting the processed order with control number: {control_number}")
+    control_number = str(control_number)
+    try:
+        entity = {
+            "PartitionKey": "DispatchOrder",
+            "RowKey": control_number,
+            "OrderStatus": "Processed"
+        }
+        table_client.create_entity(entity)
+        logging.info(f"Order with control number: {control_number} inserted into the table")
+    except Exception as e:
+        logging.error(f"Failed to insert the order into the table: {e}")
+        logging.error(f"Entity details: {entity}")
+        return func.HttpResponse(
+            "Failed to insert the order into the table", status_code=500)
+        
+        T
