@@ -4,36 +4,33 @@ import logging
 import json
 import os
 import csv
-import io
 import paramiko
 from azure.core.exceptions import ResourceNotFoundError
-from dotenv import load_dotenv
 from jsonschema import validate, ValidationError
 from controllers.mappers import ContainerTypeMapper
 from models.json_model import ReadyForDispatch
 from models.cvs_model import CsvModel
-from azure.identity import DefaultAzureCredential
-from azure.keyvault.secrets import SecretClient
-from azure.data.tables import TableServiceClient, TableClient
+#from azure.identity import DefaultAzureCredential
+#from azure.keyvault.secrets import SecretClient
+from azure.data.tables import TableServiceClient
 
 
 MAX_PAYLOAD_SIZE_KB = 800
 
-#Initializa the KeyVault client
-load_dotenv()
-key_vault_url = "https://order-proc-dev-kv.vault.azure.net/"
-secret_name = "bluecorp-sftp-private-key"
-credential = DefaultAzureCredential()
-client =SecretClient(vault_url=key_vault_url, credential=credential)
+#Initialize the KeyVault client
+#key_vault_url = os.getenv("AZURE_KEY_VAULT_URL")
+#secret_name = os.getenv("VAULT_PRIVATE_KEY_SECRET_NAME")
+#credential = DefaultAzureCredential()
+#client =SecretClient(vault_url=key_vault_url, credential=credential)
 
 #retrieve private key
-private_key = client.get_secret(secret_name).value
+#private_key = client.get_secret(secret_name).value
 
 #SFTP Configuration
-sftp_host = "bluecorpsftp.blob.core.windows.net"
-sftp_port = 22
-sftp_username = "bluecorpsftp.bluecorp"
-sftp_incoming_folder = "bluecorp-incoming"
+sftp_host = os.getenv("SFTP_HOST")
+sftp_port = os.getenv("SFTP_PORT")
+sftp_username = os.getenv("SFTP_USERNAME")
+sftp_incoming_folder = os.getenv("SFTP_INCOMING_FOLDER")
 
 #Azure Table Storage Configuration
 table_connection_string = os.getenv("AzureWebJobsStorage")
@@ -72,7 +69,7 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             logging.info(f"Duplicate order found for ControlNumber: {control_number}. This dispatch load will be skipped for processing.")
             return func.HttpResponse("Duplicate order found. No new payload to process.", status_code=200)
 
-            #map the json data to csv
+        #map the json data to csv
         mapped_csv_data = map_json_to_csv(dispatch_data)
         logging.info("Dispatch data mapped to CSV.")
         #logging.info(f"CSV data: {mapped_csv_data}")
@@ -168,27 +165,22 @@ def connect_to_SFTP(private_key):
     with open(temp_key_file, "w") as key_file:
         key_file.write(private_key)
         
-        # # Ensure correct file permissions
+    # # Ensure correct file permissions
     os.chmod(temp_key_file, 0o600)  # Read and write for the owner only
 
-        # Load the private key
+    # Load the private key
     private_key_obj = paramiko.RSAKey.from_private_key_file(temp_key_file)
 
     logging.info("Connecting to SFTP server")
-        # Establish the SFTP connection
+    # Establish the SFTP connection
     transport = paramiko.Transport((sftp_host, sftp_port))
     transport.connect(username=sftp_username, pkey=private_key_obj)
     sftp = paramiko.SFTPClient.from_transport(transport)
     logging.info("Connected to SFTP server")
 
-        # Clean up the temporary private key file after connecting
+    # Clean up the temporary private key file after connecting
     os.remove(temp_key_file)
     return sftp
-    
-    # except Exception as e:
-    #     logging.error(f"Failed to connect to SFTP server: {e}")
-    #     return func.HttpResponse(
-    #         "Failed to connect to SFTP server", status_code=500)
     
 
 def upload_to_SFTP(sftp_client, upload_path):
@@ -238,5 +230,3 @@ def insert_processed_order(table_client, control_number):
         logging.error(f"Entity details: {entity}")
         return func.HttpResponse(
             "Failed to insert the order into the table", status_code=500)
-        
-        T
