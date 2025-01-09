@@ -27,8 +27,10 @@ stages:
           # Step 1: Install Azure CLI  
           - task: UsePythonVersion@0
             inputs:
-              versionSpec: '3.11.1'
+              versionSpec: '3.11'
               addToPath: true
+              architecture: x64
+              disableDownloadFromRegistry: true
           
           - script: |
               curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
