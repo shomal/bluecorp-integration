@@ -50,10 +50,10 @@ stages:
           - task: AzureCLI@2
             inputs:
               azureSubscription: "AzureBluecorpConnection"
-              scriptType: 'bash'
+              scriptType: 'ps'
               scriptLocation: 'inlineScript'
               inlineScript: |
-                az login --service-principal -u $(AZURESERVICEPRINCIPALUSERNAME) -p $(AZURESERVICEPRINCIPALPASSWORD) --tenant $(TENANTID)
+                az login --service-principal -u ${env:AZURESERVICEPRINCIPALUSERNAME} -p ${env:AZURESERVICEPRINCIPALPASSWORD} --tenant ${env:TENANTID}
                 az account set --subscription "AzureBluecorpConnection"
             displayName: 'Log in to Azure using service principal'
 
@@ -61,12 +61,12 @@ stages:
           - task: AzureCLI@2
             inputs:
               azureSubscription: "AzureBluecorpConnection"
-              scriptType: 'bash'
+              scriptType: 'ps'
               scriptLocation: 'inlineScript'
               inlineScript: |
-                az deployment group create \
-                  --resource-group bluecorp_service_rg \
-                  --template-file infrastructure/azure_template.bicep\
+                az deployment group create `
+                  --resource-group bluecorp_service_rg `
+                  --template-file infrastructure/azure_template.bicep `
                   --parameters location="australiaeast"
             displayName: 'Deploy Bicep template to Azure'
 
