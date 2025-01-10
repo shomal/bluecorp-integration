@@ -53,8 +53,8 @@ stages:
               scriptType: 'ps'
               scriptLocation: 'inlineScript'
               inlineScript: |
-                az login --service-principal -u ${env:AZURESERVICEPRINCIPALUSERNAME} -p ${env:AZURESERVICEPRINCIPALPASSWORD} --tenant ${env:TENANTID}
-                az account set --subscription "AzureBluecorpConnection"
+                az login --service-principal --username ${env:AZURESERVICEPRINCIPALUSERNAME} --password=${env:AZURESERVICEPRINCIPALPASSWORD} --tenant ${env:TENANTID}
+                az account set --subscription ${env:TENANTID}
             displayName: 'Log in to Azure using service principal'
 
           # Step 5: Deploy the Bicep template to Azure
