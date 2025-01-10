@@ -68,6 +68,8 @@ stages:
           
           # Step 5: Set up Function App Environment
           - script: |
+              python -m venv .venv
+              source .venv/Scripts/activate
               python --version
               pip install --upgrade pip
               pip install -r $(functionAppFolder)/requirements.txt || echo "Failed to install dependencies"
