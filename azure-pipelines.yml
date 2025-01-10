@@ -18,7 +18,7 @@ variables:
    value: 'australiaeast'
 # Function app name
  - name: functionAppName
-   value: my-python-function-app
+   value: dispatch-order
 #Function app folder
  - name: functionAppFolder
    value: .  # Root folder where function.py and requirements.txt are located
