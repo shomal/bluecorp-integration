@@ -30,13 +30,26 @@ stages:
               versionSpec: '3.11.9'
             displayName: 'Set python path and validate'
           
-          # Install Azure CLI 
+          # Step 2: Install Azure CLI on Windows
           - script: |
-              curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-              sudo apt-get install azure-cli
+              powershell -Command "& {Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile AzureCLI.msi; Start-Process msiexec.exe -ArgumentList '/I AzureCLI.msi /quiet' -Wait; Remove-Item AzureCLI.msi}"
             displayName: 'Install Azure CLI'
 
-          # Step 2: Log in to Azure
+          # Step 3: Validate Azure CLI Installation
+          - script: |
+              az --version
+            displayName: 'Validate Azure CLI Installation'
+
+          # Install Azure CLI 
+          #- script: |
+          #    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+          #    sudo apt-get install azure-cli
+          #  displayName: 'Install Azure CLI'
+          - script: |
+              az --version
+              displayName: 'Validate Azure CLI Installation'
+
+          # Step 4: Log in to Azure
           - task: AzureCLI@2
             inputs:
               azureSubscription: "AzureBluecorpConnection"
@@ -46,7 +59,7 @@ stages:
                 az login --service-principal -u $(AZURESERVICEPRINCIPALUSERNAME) -p $(AZURESERVICEPRINCIPALPASSWORD) --tenant $(TENANTID)
                 az account set --subscription "AzureBluecorpConnection"
 
-          # Step 3: Deploy the Bicep template to Azure
+          # Step 5: Deploy the Bicep template to Azure
           - task: AzureCLI@2
             inputs:
               azureSubscription: "AzureBluecorpConnection"
@@ -58,5 +71,5 @@ stages:
                   --template-file infrastructure/azure_template.bicep\
                   --parameters location="australiaeast"
 
-          # Step 4: Post-deployment steps (optional, e.g., notifications, tests)
+          # Step 6: Post-deployment steps (optional, e.g., notifications, tests)
 
