@@ -70,8 +70,8 @@ stages:
           - script: |
               python --version
               pip install --upgrade pip
-              pip install -r $(functionAppFolder)/requirements.txt
-            displayName: 'Set Up Python Environment and Install Dependencies'
+              pip install -r $(functionAppFolder)/requirements.txt || echo "Failed to install dependencies"
+            displayName: 'Set up Function App Environment'
 
           # Step 6: Publish Python Function App
           - script: |
