@@ -87,6 +87,24 @@ stages:
               func --version
               func azure functionapp publish $(functionAppName) --nozip
             displayName: 'Install Azure Functions Core Tools'
+
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: '$(System.DefaultWorkingDirectory)'  # Root directory of your code
+              includeRootFolder: false
+              archiveType: 'zip'
+              archiveFile: '$(Build.ArtifactStagingDirectory)/package.zip'
+              replaceExistingArchive: true
+            displayName: 'Create deployment package (ZIP)'
+            
+          - task: AzureFunctionApp@1
+            inputs:
+              azureSubscription: $(azureSubscription)  # Replace with your Azure subscription
+              appType: 'functionAppLinux'
+              appName: $(functionAppName)
+              package: '$(Build.ArtifactStagingDirectory)/package.zip'
+              deploymentMethod: 'zipDeploy'
+            displayName: 'Deploy Function App code'
             
           # Step 7: Post-deployment steps (optional, e.g., notifications, tests)
 
