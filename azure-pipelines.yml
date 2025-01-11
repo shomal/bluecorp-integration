@@ -70,8 +70,7 @@ stages:
           - script: |
               echo "Python Version:"
               python --version
-              echo "Upgrading pip..."
-              pip install --upgrade pip || echo "Failed to upgrade pip"
+              pip --version
               echo "Listing contents of Function App folder:"
               dir $(functionAppFolder)
               echo "Installing dependencies from requirements.txt..."
