@@ -79,7 +79,7 @@ stages:
               pip install -r $(functionAppFolder)/requirements.txt
             displayName: 'Set Up Python Virtual Environment and Install Dependencies'
 
-          # Step 6: Install Azure Functions Core Tools and publish function app
+          # Step 6: Install Azure Functions Core Tools and Publish function app to Azure
           - script: |
               npm install -g azure-functions-core-tools@4 --unsafe-perm true
               func --version
