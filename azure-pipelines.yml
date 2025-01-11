@@ -42,7 +42,7 @@ stages:
               az --version
             displayName: 'Validate Azure CLI Installation'
 
-          # Step 3: Log in to Azure
+          # Step 3: Log in to Azure and show account
           - task: AzureCLI@2
             inputs:
               azureSubscription: $(azureSubscription)
