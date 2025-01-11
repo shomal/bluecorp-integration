@@ -50,6 +50,7 @@ stages:
               scriptLocation: 'inlineScript'
               inlineScript: |
                 az login --service-principal --username ${env:AZURESERVICEPRINCIPALUSERNAME} --password=${env:AZURESERVICEPRINCIPALPASSWORD} --tenant ${env:TENANTID}
+                az account show
                 az account set --subscription ${env:AZURESUBSCRIPTIONID}
             displayName: 'Log in to Azure using service principal'
 
