@@ -15,7 +15,14 @@ variables:
    value: 'bluecorp_service_rg'
 # Azure region to deploy resources to
  - name: location
-   value : 'australiaeast'
+   value: 'australiaeast'
+# Function app name
+ - name: functionAppName
+   value: 'dispatch-order'
+#Function app folder
+ - name: functionAppFolder
+   value: '.'  # Root folder where function.py and requirements.txt are located
+
 
 stages:
   - stage: BuildAndDeploy
@@ -29,24 +36,13 @@ stages:
             inputs:
               versionSpec: '3.11.9'
             displayName: 'Set python path and validate'
-          
-          # Step 2: Install Azure CLI on Windows
-          #- script: |
-          #    powershell -Command "& {Invoke-WebRequest -Uri https://aka.ms/installazurecliwindows -OutFile AzureCLI.msi; Start-Process msiexec.exe -ArgumentList '/I AzureCLI.msi /quiet' -Wait; Remove-Item AzureCLI.msi}"
-          #  displayName: 'Install Azure CLI'
 
-          # Step 3: Validate Azure CLI Installation
+          # Step 2: Validate Azure CLI Installation
           - script: |
               az --version
             displayName: 'Validate Azure CLI Installation'
 
-          # Install Azure CLI 
-          #- script: |
-          #    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
-          #    sudo apt-get install azure-cli
-          #  displayName: 'Install Azure CLI'
-
-          # Step 4: Log in to Azure
+          # Step 3: Log in to Azure and show account
           - task: AzureCLI@2
             inputs:
               azureSubscription: $(azureSubscription)
@@ -54,10 +50,12 @@ stages:
               scriptLocation: 'inlineScript'
               inlineScript: |
                 az login --service-principal --username ${env:AZURESERVICEPRINCIPALUSERNAME} --password=${env:AZURESERVICEPRINCIPALPASSWORD} --tenant ${env:TENANTID}
+                az account show
                 az account set --subscription ${env:AZURESUBSCRIPTIONID}
+                az group create --name ${env:resourceGroup} --location ${env:location}
             displayName: 'Log in to Azure using service principal'
 
-          # Step 5: Deploy the Bicep template to Azure
+          # Step 4: Deploy the Bicep template to Azure
           - task: AzureCLI@2
             inputs:
               azureSubscription: $(azureSubscription)
@@ -69,6 +67,26 @@ stages:
                   --template-file infrastructure/azure_template.bicep `
                   --parameters location=${env:location}
             displayName: 'Deploy Bicep template to Azure'
+          
+          # Step 5: Set up Function App Environment
+          - script: |
+              python -m venv .venv
+              if exist .venv\Scripts\activate (
+                call .venv\Scripts\activate
+              ) else (
+                source .venv/bin/activate
+              )
+              python --version
+              pip install --upgrade pip
+              pip install -r $(functionAppFolder)/requirements.txt
+            displayName: 'Set Up Python Virtual Environment and Install Dependencies'
 
-          # Step 6: Post-deployment steps (optional, e.g., notifications, tests)
+          # Step 6: Install Azure Functions Core Tools and Publish function app to Azure
+          - script: |
+              npm install -g azure-functions-core-tools@4 --unsafe-perm true
+              func --version
+              func azure functionapp publish $(functionAppName) --nozip
+            displayName: 'Install Azure Functions Core Tools'
+            
+          # Step 7: Post-deployment steps (optional, e.g., notifications, tests)
 
