@@ -68,14 +68,12 @@ stages:
           
           # Step 5: Set up Function App Environment
           - script: |
-              echo "Python Version:"
+              python -m venv .venv
+              source .venv/Scripts/activate  # Use `.venv/bin/activate` for Linux
               python --version
-              pip --version
-              echo "Listing contents of Function App folder:"
-              dir $(functionAppFolder)
-              echo "Installing dependencies from requirements.txt..."
-              pip install -r $(functionAppFolder)/requirements.txt || exit /b 1
-            displayName: 'Set Up Python Environment and Install Dependencies'
+              pip install --upgrade pip
+              pip install -r $(functionAppFolder)/requirements.txt
+            displayName: 'Set Up Python Virtual Environment and Install Dependencies'
 
           # Step 6: Publish Python Function App
           - script: |
