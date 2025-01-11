@@ -594,46 +594,7 @@ resource sites_bluecorp_order_service_name_resource 'Microsoft.Web/sites@2023-12
   name: sites_bluecorp_order_service_name
   location: location
   kind: 'functionapp'
-  properties: {
-    serverFarmId: serverfarms_bluecorp_ASP_name_resource.id
-    siteConfig: {
-      appSettings:[
-        {
-          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-          value: components_bluecorp_order_service_name_resource.properties.InstrumentationKey
-        }
-        {
-          name: 'FUNCTIONS_WORKER_RUNTIME'
-          value: 'python'
-        }
-        {
-          name: 'AzureWebJobsStorage'
-          value: storageAccounts_bluecorpazstorage_name_resource.primaryEndpoints.blob
-        }
-        {
-          name: 'AzureWebJobsDashboard'
-          value: storageAccounts_bluecorpazstorage_name_resource.primaryEndpoints.blob
-        }
-        {
-          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
-          value: storageAccounts_bluecorpazstorage_name_resource.primaryEndpoints.file
-        }
-        {
-          name: 'WEBSITE_CONTENTSHARE'
-          value: 'bluecorpresources'
-        }
-        {
-          name: 'WEBSITE_RUN_FROM_PACKAGE'
-          value: '1'
-        }
-        {
-          name: 'FUNCTIONS_EXTENSION_VERSION'
-          value: '~3'
-        }
-        {
-          name: 'FUNCTIONS_WORKER_RUNTIME_VERSION'
-          value: '3.11'
-        }]        
+  properties: {   
     enabled: true
     hostNameSslStates: [
       {
@@ -663,6 +624,11 @@ resource sites_bluecorp_order_service_name_resource 'Microsoft.Web/sites@2023-12
       http20Enabled: false
       functionAppScaleLimit: 0
       minimumElasticInstanceCount: 0
+    }
+    appSettings: {
+      'FUNCTIONS_WORKER_RUNTIME': 'python'
+      'WEBSITE_RUN_FROM_PACKAGE': '1'
+      'FUNCTIONS_EXTENSION_VERSION': '~3'
     }
     scmSiteAlsoStopped: false
     clientAffinityEnabled: false
