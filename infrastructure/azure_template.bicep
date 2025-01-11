@@ -7,7 +7,6 @@ param actionGroups_Application_Insights_Smart_Detection_name string = 'Applicati
 param components_log_analytics_workspace_name string = 'log-analytics-workspace'
 param location string = resourceGroup().location
 
-
 resource actionGroups_Application_Insights_Smart_Detection_name_resource 'microsoft.insights/actionGroups@2023-09-01-preview' = {
   name: actionGroups_Application_Insights_Smart_Detection_name
   location: 'Global'
@@ -594,8 +593,47 @@ resource Microsoft_Storage_storageAccounts_tableServices_storageAccounts_bluecor
 resource sites_bluecorp_order_service_name_resource 'Microsoft.Web/sites@2023-12-01' = {
   name: sites_bluecorp_order_service_name
   location: location
-  kind: 'functionapp,linux'
+  kind: 'functionapp'
   properties: {
+    serverFarmId: serverfarms_bluecorp_ASP_name_resource.id
+    siteConfig: {
+      appSettings:[
+        {
+          name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+          value: components_bluecorp_order_service_name_resource.properties.InstrumentationKey
+        }
+        {
+          name: 'FUNCTIONS_WORKER_RUNTIME'
+          value: 'python'
+        }
+        {
+          name: 'AzureWebJobsStorage'
+          value: storageAccounts_bluecorpazstorage_name_resource.primaryEndpoints.blob
+        }
+        {
+          name: 'AzureWebJobsDashboard'
+          value: storageAccounts_bluecorpazstorage_name_resource.primaryEndpoints.blob
+        }
+        {
+          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'
+          value: storageAccounts_bluecorpazstorage_name_resource.primaryEndpoints.file
+        }
+        {
+          name: 'WEBSITE_CONTENTSHARE'
+          value: 'bluecorpresources'
+        }
+        {
+          name: 'WEBSITE_RUN_FROM_PACKAGE'
+          value: '1'
+        }
+        {
+          name: 'FUNCTIONS_EXTENSION_VERSION'
+          value: '~3'
+        }
+        {
+          name: 'FUNCTIONS_WORKER_RUNTIME_VERSION'
+          value: '3.11'
+        }]        
     enabled: true
     hostNameSslStates: [
       {
