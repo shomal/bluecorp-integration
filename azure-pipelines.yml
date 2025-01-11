@@ -77,7 +77,7 @@ stages:
               python --version
               pip install --upgrade pip
               pip install -r $(functionAppFolder)/requirements.txt
-              displayName: 'Set Up Python Virtual Environment and Install Dependencies'
+            displayName: 'Set Up Python Virtual Environment and Install Dependencies'
 
           # Step 6: Publish Python Function App
           - script: |
