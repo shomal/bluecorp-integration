@@ -52,6 +52,7 @@ stages:
                 az login --service-principal --username ${env:AZURESERVICEPRINCIPALUSERNAME} --password=${env:AZURESERVICEPRINCIPALPASSWORD} --tenant ${env:TENANTID}
                 az account show
                 az account set --subscription ${env:AZURESUBSCRIPTIONID}
+                az group create --name ${env:resourceGroup} --location ${env:location}
             displayName: 'Log in to Azure using service principal'
 
           # Step 4: Deploy the Bicep template to Azure
