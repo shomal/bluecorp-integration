@@ -36,8 +36,8 @@ table_connection_string = os.getenv("AzureWebJobsStorage")
 table_name = os.getenv("AZURE_TABLE_NAME")
 
 app = func.FunctionApp(http_auth_level=func.AuthLevel.ANONYMOUS)
+@app.function_name(name="dispatch_order")
 @app.route(route="bluecorp_order_processing")
-
 def main(req: func.HttpRequest) -> func.HttpResponse:
     logging.info('Received the dispatch load request from D365.')
 

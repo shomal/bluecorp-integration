@@ -626,7 +626,8 @@ resource sites_bluecorp_order_service_name_resource 'Microsoft.Web/sites@2023-12
       minimumElasticInstanceCount: 0
       appSettings: [{
         name: 'FUNCTIONS_WORKER_RUNTIME'
-        value: 'python'}
+        value: 'python'
+        }
         {
         name: 'WEBSITE_RUN_FROM_PACKAGE'
         value : '1'}
@@ -634,8 +635,14 @@ resource sites_bluecorp_order_service_name_resource 'Microsoft.Web/sites@2023-12
         name: 'FUNCTIONS_EXTENSION_VERSION'
         value: '~4'
         }
-        {name: 'AzureWebJobsSecretStorageType'
-        value: 'Blob'}
+        {
+        name: 'AzureWebJobsSecretStorageType'
+        value: 'Blob'
+        }
+        {
+        name: 'AzureWebJobsFeatureFlags'
+        value: 'EnableWorkerIndexing'
+        }
       ]
     }
     scmSiteAlsoStopped: false
