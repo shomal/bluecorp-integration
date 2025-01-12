@@ -636,8 +636,8 @@ resource sites_bluecorp_order_service_name_resource 'Microsoft.Web/sites@2023-12
         value: '~4'
         }
         {
-        name: 'AzureWebJobsSecretStorageType'
-        value: 'Blob'
+        name: 'AzureWebJobsStorage'
+        value: 'Files'
         }
         {
         name: 'AzureWebJobsFeatureFlags'
