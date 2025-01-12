@@ -633,7 +633,7 @@ resource sites_bluecorp_order_service_name_resource 'Microsoft.Web/sites@2023-12
       value : '1'}
       {
       name: 'FUNCTIONS_EXTENSION_VERSION'
-      value: '~3'
+      value: '~4'
       }]
     scmSiteAlsoStopped: false
     clientAffinityEnabled: false
