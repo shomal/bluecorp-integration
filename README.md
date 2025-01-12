@@ -18,7 +18,9 @@ This repository contains a Python-based HTTP Azure Function designed to handle o
 - Enabling public whitelisting
 - While there are some azure infrastructure deployed via Azure DevOps pipeline, there is an issue with deploying the functions within the function app. Function runs locally however it is not deploying correctly via the pipelines
 
-# Challenges faced
+# Challenges faced and Time Spent
+- About 2 hours were spent designing the solution or planning on the resources to use and how the solution would look like.
+- About 30 to 32 hours were spent on the implementation and from these 32 hours, more than 60% of the time was spent debugging the IaC deployment issues
 - Due to restrictions on a free Azure Devops account, I had setup a self-hosted agent for Windows for the devops pipelines to execute. Majority of the time was spent debugging and setting this up
 - Majority of the time was spent debugging on why the functions within the function app wasn't being deployed as the deplyment pipeline would show success but manual checks in Azure Portal showed the function itself is not available due to requirements packagaes not imported correctly or the functions not being defined well.
 
