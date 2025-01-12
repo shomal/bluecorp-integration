@@ -85,7 +85,7 @@ stages:
           - script: |
               npm install -g azure-functions-core-tools@4 --unsafe-perm true
               func --version
-              func azure functionapp publish $(functionAppName) --nozip
+            #func azure functionapp publish $(functionAppName) --nozip
             displayName: 'Install Azure Functions Core Tools'
 
           - task: ArchiveFiles@2
