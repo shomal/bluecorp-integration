@@ -625,11 +625,16 @@ resource sites_bluecorp_order_service_name_resource 'Microsoft.Web/sites@2023-12
       functionAppScaleLimit: 0
       minimumElasticInstanceCount: 0
     }
-    appSettings: {
-      'FUNCTIONS_WORKER_RUNTIME': 'python'
-      'WEBSITE_RUN_FROM_PACKAGE': '1'
-      'FUNCTIONS_EXTENSION_VERSION': '~3'
-    }
+    appSettings: [{
+      name: 'FUNCTIONS_WORKER_RUNTIME'
+      value: 'python'}
+      {
+      name: 'WEBSITE_RUN_FROM_PACKAGE'
+      value : '1'}
+      {
+      name: 'FUNCTIONS_EXTENSION_VERSION'
+      value: '~3'
+      }]
     scmSiteAlsoStopped: false
     clientAffinityEnabled: false
     clientCertEnabled: false
